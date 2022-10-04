@@ -1,1 +1,0 @@
-from game.pieces.piece import Piece

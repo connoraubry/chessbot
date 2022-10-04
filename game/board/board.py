@@ -216,43 +216,22 @@ def matrix_coords_to_algebraic(rank, file):
     return idx_to_file[file] + idx_to_rank[rank]
 
 def is_opposite_knight(piece, player):
-    if player == 'w':
-        return piece == 'n'
-    if player == 'b':
-        return piece == 'N'
-    return False
-
+    return piece == opposite_piece[player]['knight']
+    
 def is_opposite_bishop(piece, player):
-    if player == 'w':
-        return piece == 'b'
-    if player == 'b':
-        return piece == 'B'
-    return False 
+    return piece == opposite_piece[player]['bishop']
+
 def is_opposite_queen(piece, player):
-    if player == 'w':
-        return piece == 'q'
-    if player == 'b':
-        return piece == 'Q'
-    return False 
+    return piece == opposite_piece[player]['queen']
 def is_opposite_rook(piece, player):
-    if player == 'w':
-        return piece == 'r'
-    if player == 'b':
-        return piece == 'R'
-    return False 
+    return piece == opposite_piece[player]['rook']
 
 def is_opposite_king(piece, player):
-    if player == 'w':
-        return piece == 'k'
-    if player == 'b':
-        return piece == 'K'
-    return False 
+    return piece == opposite_piece[player]['king']
+
 def is_opposite_pawn(piece, player):
-    if player == 'w':
-        return piece == 'p'
-    if player == 'b':
-        return piece == 'P'
-    return False 
+    return piece == opposite_piece[player]['pawn']
+
 def is_opposite_queen_or_bishop(piece, player):
     return is_opposite_bishop(piece, player) or is_opposite_queen(piece, player)
 

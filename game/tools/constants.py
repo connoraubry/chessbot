@@ -28,3 +28,26 @@ piece_to_unicode = {
     'K': '\u2654',
     None: '\u00B7'
 }
+
+enemy = {
+    'w': 'b',
+    'b': 'w'
+}
+opposite_piece = {
+    'w': {
+        'pawn': 'p',
+        'rook': 'r',
+        'bishop': 'b',
+        'knight': 'n',
+        'queen': 'q',
+        'king': 'k'
+    },
+    'b': {
+        'pawn': 'P',
+        'rook': 'R',
+        'bishop': 'B',
+        'knight': 'N',
+        'queen': 'Q',
+        'king': 'K'  
+    }
+}
