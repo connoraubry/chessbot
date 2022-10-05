@@ -1,5 +1,3 @@
-from operator import pos
-from turtle import position
 import unittest 
 from game.board.board import Board 
 from game.tools import *

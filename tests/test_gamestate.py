@@ -19,9 +19,32 @@ class GameTester(unittest.TestCase):
         all_moves = g.get_all_moves()
         self.assertSetEqual(all_moves, first_moves)
     
+
+    def test_get_all_moves_e4(self):
+        g = Gamestate()
+        g.take_move('e4')
+
+        all_moves = g.get_all_moves()
+        self.assertSetEqual(all_moves, first_black_moves)
+
+
+    def test_move_to_start(self):
+        g = Gamestate()
+        all_moves = g.moves
+        self.assertSetEqual(set(g.move_to_start.keys()), g.moves)
+
     def test_get_move(self):
         g = Gamestate()
         self.assertSetEqual(set(), g.get_move(0))
         self.assertSetEqual(set(), g.get_move(2))
         self.assertSetEqual(set(['Na3', 'Nc3']), g.get_move(1))
         self.assertSetEqual(set(['a3', 'a4']), g.get_move(8))
+
+    def test_take_move(self):
+        g = Gamestate()
+        g.take_move('e4')
+        self.assertEqual(g.board['e2'], None)
+        self.assertEqual(g.board['e3'], None)
+        self.assertEqual(g.board['e4'], 'P')
+
+

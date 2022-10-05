@@ -1,5 +1,6 @@
 from game.tools import *
 import itertools
+
 class Board():
     def __init__(self, FEN_positions=None):
         self.board = self.make_empty_board()
@@ -29,6 +30,7 @@ class Board():
     def __setitem__(self, key, value):
         if type(key) == int:
             self.board[key] = value
+            return
         if not is_coordinate_valid(key):
             raise ValueError("{} is not a valid coordinate".format(key))
         file_idx = file_to_idx[key[0]]
@@ -59,13 +61,13 @@ class Board():
 
     def piece_under_attack(self, spot):
         player = player_of_piece(self[spot])
-        return self.piece_under_attack_knight(spot, player) \
-                or self.piece_under_attack_bishop(spot, player) \
-                or self.piece_under_attack_rook(spot, player) \
-                or self.piece_under_attack_king(spot, player) \
-                or self.piece_under_attack_pawn(spot, player)
+        return self.piece_under_attack_by_knight(spot, player) \
+                or self.piece_under_attack_by_bishop(spot, player) \
+                or self.piece_under_attack_by_rook(spot, player) \
+                or self.piece_under_attack_by_king(spot, player) \
+                or self.piece_under_attack_by_pawn(spot, player)
 
-    def piece_under_attack_knight(self, spot, player=None):
+    def piece_under_attack_by_knight(self, spot, player=None):
         if player == None:
             player = player_of_piece(self[spot])
 
@@ -103,7 +105,7 @@ class Board():
                 return True
         return False
 
-    def piece_under_attack_bishop(self, spot, player=None):
+    def piece_under_attack_by_bishop(self, spot, player=None):
         if player == None:
             player = player_of_piece(self[spot])
 
@@ -127,7 +129,7 @@ class Board():
 
         return False
 
-    def piece_under_attack_rook(self, spot, player=None):
+    def piece_under_attack_by_rook(self, spot, player=None):
         if player == None:
             player = player_of_piece(self[spot])
 
@@ -159,7 +161,7 @@ class Board():
                     break
         return False
 
-    def piece_under_attack_king(self, spot, player=None):
+    def piece_under_attack_by_king(self, spot, player=None):
         if player == None:
             player = player_of_piece(self[spot])
 
@@ -177,7 +179,7 @@ class Board():
                     return True
         return False 
 
-    def piece_under_attack_pawn(self, spot, player=None):
+    def piece_under_attack_by_pawn(self, spot, player=None):
         if player == None:
             player = player_of_piece(self[spot])
 

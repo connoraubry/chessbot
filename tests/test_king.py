@@ -19,3 +19,4 @@ class KingTester(unittest.TestCase):
             g = Gamestate(fen=None)
             g.board[spot] = 'K'
             self.assertSetEqual(expected, g.get_move(spot))
+
