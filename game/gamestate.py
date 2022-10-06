@@ -24,7 +24,13 @@ class Gamestate():
             self.en_passant = '-'
             self.halfmove_clock = 0
             self.fullmove_counter = 1
-    
+    def export_FEN(self):
+        positions = self.board.export_board_to_FEN_positions()
+
+        return " ".join([positions, self.move, self.castle, 
+            self.en_passant, str(self.halfmove_clock),
+            str(self.fullmove_counter)])
+
     def get_all_moves(self):
         self.moves = set()
         self.move_to_start = dict()
@@ -243,6 +249,7 @@ class Gamestate():
         print(move)
         if move in self.moves:
 
+
             destination_spot = move[-2:]
             print(destination_spot)
 
@@ -250,5 +257,16 @@ class Gamestate():
             self.board[destination_spot] = self.board[source_spot]
             self.board[source_spot] = None
 
+            if self.board[destination_spot] in ['p', 'P']:
+                self.halfmove_clock = 0
+            elif 'x' in move:
+                self.halfmove_clock = 0
+            else:
+                self.halfmove_clock += 1
 
-            self.move = 'w' if self.move == 'b' else 'b' 
+            if self.move == 'w':
+                self.move = 'b'
+            elif self.move == 'b':
+                self.move = 'w'
+
+                self.fullmove_counter += 1

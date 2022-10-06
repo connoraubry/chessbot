@@ -53,6 +53,28 @@ class Board():
                 else:
                     file += int(character)
 
+    def export_board_to_FEN_positions(self):
+        board_2d = self.get_2d_representation()
+        fen_rows = []
+        
+        for row in reversed(board_2d):
+            fen_row = ""
+            file_idx = 0
+            while file_idx < 8:
+                piece = row[file_idx]
+                if piece is not None:
+                    fen_row += piece 
+                    file_idx += 1
+                else:
+                    space_counter = 0
+                    while (file_idx < 8 and row[file_idx] is None):
+                        file_idx += 1
+                        space_counter += 1
+                    fen_row += str(space_counter)
+            fen_rows.append(fen_row)
+
+        return "/".join(fen_rows)
+
     def get_2d_representation(self):
         return [self.board[start:start+8] for start in range(0, 64, 8)]
 

@@ -1,6 +1,8 @@
+from tracemalloc import start
 import unittest
 
 from game.gamestate import Gamestate
+from game.tools.constants import *
 from tests.constants import *
 
 class GameTester(unittest.TestCase):
@@ -13,6 +15,17 @@ class GameTester(unittest.TestCase):
         self.assertEqual(g.halfmove_clock, 0)
         self.assertEqual(g.fullmove_counter, 1)
         self.assertEqual(g.move, 'w')
+
+
+    def test_export_FEN(self):
+        g = Gamestate(fen=starting_FEN)
+        new_fen = g.export_FEN()
+        self.assertEqual(starting_FEN, new_fen)
+    
+    def test_export_FEN_middlegame_1(self):
+        fen=fen_configs['middlegame_1']
+        g = Gamestate(fen)
+        self.assertEqual(g.export_FEN(), fen)
 
     def test_get_all_moves(self):
         g = Gamestate()

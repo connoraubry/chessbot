@@ -1,7 +1,7 @@
 import unittest 
 from game.board.board import Board 
 from game.tools import *
-
+from tests.constants import *
 
 class BoardTester(unittest.TestCase):
 
@@ -31,7 +31,31 @@ class BoardTester(unittest.TestCase):
         self.assertEqual(b['d1'], 'Q')
         self.assertEqual(b.white_king, 'e1')
         self.assertEqual(b.black_king, 'e8')
-    
+
+    def test_export_FEN(self):
+        positions = starting_FEN.split(" ")[0]
+        b = Board(FEN_positions=positions)
+        new_positions = b.export_board_to_FEN_positions()
+        self.assertEqual(positions, new_positions)
+
+    def test_export_FEN_e4(self):
+        positions = fen_configs['e4'].split(" ")[0]
+        b = Board(FEN_positions=positions)
+        new_positions = b.export_board_to_FEN_positions()
+        self.assertEqual(positions, new_positions)
+
+    def test_export_FEN_giuoco_piano(self):
+        positions = fen_configs['giuoco_piano'].split(" ")[0]
+        b = Board(FEN_positions=positions)
+        new_positions = b.export_board_to_FEN_positions()
+        self.assertEqual(positions, new_positions)
+
+    def test_export_FEN_middlegame_1(self):
+        positions = fen_configs['middlegame_1'].split(" ")[0]
+        b = Board(FEN_positions=positions)
+        new_positions = b.export_board_to_FEN_positions()
+        self.assertEqual(positions, new_positions)
+
     def test_iter(self):
         positions = starting_FEN.split(" ")[0]
         b = Board(FEN_positions=positions)
