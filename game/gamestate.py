@@ -64,15 +64,15 @@ class Gamestate():
         elif piece == 'Q':
             moves = set(self.get_queen_moves(index))
 
-        if piece != 'P':
-            moves =  {piece + x for x in moves }
-
+        # if piece != 'P':
+        #     moves =  {piece + x for x in moves }
+        moves = {x.to_string() for x in moves}
         self.move_to_start.update({move: index for move in moves})
         return moves
 
     #TODO: promotion, capture, side of board captures
     def get_pawn_moves(self, index):
-        algebraic = index_to_coordinate(index)
+        rank, _ = rank_and_file(index)
         #check move ahead
         moves = []
 
@@ -81,110 +81,106 @@ class Gamestate():
             offset = 8
         elif self.move == 'b':
             offset = -8
-
-        if self.board[index + offset] is None:
-            moves.append(index_to_coordinate(index+offset))
+        new_spot = index + offset
+        if self.board[new_spot] is None:
+            moves.append(Move(index, new_spot, self.board[index], None))
             #if space ahead is empty, and first rank can go 2 moves
-            if (algebraic[1] == '2' and self.move == 'w') or \
-            (algebraic[1] == '7' and self.move == 'b'):
-                if self.board[index+ (offset * 2)] is None:
-                    moves.append(index_to_coordinate(index + (offset * 2)))
+            if (rank == 1 and self.move == 'w') or \
+            (rank == 6 and self.move == 'b'):
+                two_spot = new_spot + offset 
+                if self.board[two_spot] is None:
+                    moves.append(Move(index, two_spot, self.board[index], None))
 
-        for attack_space in [offset + 1, offset - 1]:
-            piece = self.board[attack_space]
+        for attack_offset in [offset + 1, offset - 1]:
+            attack_spot = index + attack_offset
+            piece = self.board[attack_spot]
             if piece is not None and player_of_piece(piece) != self.move:
-                moves.append(algebraic[0] + 'x' + index_to_coordinate(attack_space))
+                moves.append(Move(index, new_spot, self.board[index], piece))
         return moves
 
     def get_knight_moves(self, index):
+
+        rank, file = rank_and_file(index)
+
+        move_offsets = []
         moves = []
 
-        algebraic = index_to_coordinate(index)
-        file_idx = file_to_idx[algebraic[0]]
-        rank_idx = int(algebraic[1]) - 1
-        move_offsets = []
 
-        if rank_idx >= 1:
-            if file_idx >= 2:
+        if rank >= 1:
+            if file >= 2:
                 move_offsets.append(-10)
-            if file_idx <= 5:
+            if file <= 5:
                 move_offsets.append(-6)
-            if rank_idx >= 2:
-                if file_idx >= 1:
+            if rank >= 2:
+                if file >= 1:
                     move_offsets.append(-17)
-                if file_idx <= 6:
-                    move_offsets.append(-15) 
-        
-        if rank_idx <= 6:
-            if file_idx >= 2:
+                if file <= 6:
+                    move_offsets.append(-15)  
+        if rank <= 6:
+            if file >= 2:
                 move_offsets.append(6)
-            if file_idx <= 5:
+            if file <= 5:
                 move_offsets.append(10)
-            if rank_idx <= 5:
-                if file_idx >= 1:
+            if rank <= 5:
+                if file >= 1:
                     move_offsets.append(15)
-                if file_idx <= 6:
+                if file <= 6:
                     move_offsets.append(17) 
 
         for move_offset in move_offsets:
             new_index = index + move_offset
-            if self.board[new_index] == None:
-                moves.append(index_to_coordinate(index + move_offset))
-            elif player_of_piece(self.board[new_index]) != self.move:
-                moves.append("x" + index_to_coordinate(index + move_offset))
+            if player_of_piece(self.board[new_index]) != self.move:
+                moves.append(Move(index, new_index, self.board[index], self.board[new_index]))
         return moves
 
     def get_bishop_moves(self, index):
-        algebraic = index_to_coordinate(index)
-        file_idx = file_to_idx[algebraic[0]]
-        rank_idx = int(algebraic[1]) - 1
+        rank, file = rank_and_file(index)
+
         moves = []
 
         for file_diff, rank_diff in [[1, 1], [-1, 1], [-1, -1], [1, -1]]:
-            curr_file_idx = file_idx + file_diff
-            curr_rank_idx = rank_idx + rank_diff
+            curr_file_idx = file + file_diff
+            curr_rank_idx = rank + rank_diff
             while ( 0 <= curr_file_idx < 8 and 0 <= curr_rank_idx < 8):
                 new_spot = curr_file_idx + (curr_rank_idx * 8)
                 board_piece  = self.board[new_spot]
                 if board_piece == None:
-                    moves.append(index_to_coordinate(new_spot))
+                    moves.append(Move(index, new_spot, self.board[index], board_piece))
                     curr_file_idx += file_diff
                     curr_rank_idx += rank_diff
                 elif player_of_piece(board_piece) != self.move:
-                    moves.append("x" + index_to_coordinate(new_spot))
+                    moves.append(Move(index, new_spot, self.board[index], board_piece))
                     break 
                 else:
                     break
         return moves
 
     def get_rook_moves(self, index):
-        algebraic = index_to_coordinate(index)
-        file_idx = file_to_idx[algebraic[0]]
-        rank_idx = int(algebraic[1]) - 1
+        rank, file = rank_and_file(index)
         moves = []
 
         for file_diff in [1, -1]:
-            curr_file_idx = file_idx + file_diff
+            curr_file_idx = file + file_diff
             while (0 <= curr_file_idx < 8):
-                new_spot = curr_file_idx + (rank_idx * 8)
+                new_spot = curr_file_idx + (rank * 8)
                 board_piece  = self.board[new_spot]
                 if board_piece == None:
-                    moves.append(index_to_coordinate(new_spot))
+                    moves.append(Move(index, new_spot, self.board[index], board_piece))
                 elif player_of_piece(board_piece) != self.move:
-                    moves.append("x" + index_to_coordinate(new_spot))
+                    moves.append(Move(index, new_spot, self.board[index], board_piece))
                     break 
                 else:
                     break        
                 curr_file_idx += file_diff
         for rank_diff in [1, -1]:
-            curr_rank_idx = rank_idx + rank_diff
+            curr_rank_idx = rank + rank_diff
             while (0 <= curr_rank_idx < 8):
-                new_spot = file_idx + (curr_rank_idx * 8)
+                new_spot = file + (curr_rank_idx * 8)
                 board_piece  = self.board[new_spot]
                 if board_piece == None:
-                    moves.append(index_to_coordinate(new_spot))
+                    moves.append(Move(index, new_spot, self.board[index], board_piece))
                 elif player_of_piece(board_piece) != self.move:
-                    moves.append("x" + index_to_coordinate(new_spot))
+                    moves.append(Move(index, new_spot, self.board[index], board_piece))
                     break 
                 else:
                     break        
@@ -192,20 +188,19 @@ class Gamestate():
         return moves
 
     def get_king_moves(self, index):
-        algebraic = index_to_coordinate(index)
-        file_idx = file_to_idx[algebraic[0]]
-        rank_idx = int(algebraic[1]) - 1
+        rank, file = rank_and_file(index)
+
         moves = []
         for rank_diff, file_diff in itertools.product([-1, 0, 1], [-1, 0, 1]): 
-            curr_file_idx = file_idx + file_diff
-            curr_rank_idx = rank_idx + rank_diff
+            curr_file_idx = file + file_diff
+            curr_rank_idx = rank + rank_diff
             if ( 0 <= curr_file_idx < 8 and 0 <= curr_rank_idx < 8):
                 new_spot = curr_file_idx + (curr_rank_idx * 8)
                 board_piece  = self.board[new_spot]
                 if board_piece == None:
-                    moves.append(index_to_coordinate(new_spot))
+                    moves.append(Move(index, new_spot, self.board[index], board_piece))
                 elif player_of_piece(board_piece) != self.move:
-                    moves.append("x" + index_to_coordinate(new_spot))
+                    moves.append(Move(index, new_spot, self.board[index], board_piece))
         # for castle_option in self.get_valid_castling():
         #     if castle_option.lower() == 'k':
         #         if self.board[index + 1] == self.board[index + 2] == None:

@@ -14,6 +14,10 @@ def is_coordinate_valid(coordinate):
         return False 
     return True 
 
+
+def rank_and_file(n):
+    return n // 8, n % 8
+
 def index_to_coordinate(index: int):
     file = index % 8
     rank = (index-file) // 8

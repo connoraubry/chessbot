@@ -24,4 +24,5 @@ class BishopTester(unittest.TestCase):
         for spot, expected in one_bishop_moves.items():
             g = Gamestate(fen=None)
             g.board[spot] = 'B'
-            self.assertSetEqual(expected, g.get_move(spot))
+            b_moves = g.get_move(spot)
+            self.assertSetEqual(expected, b_moves)
