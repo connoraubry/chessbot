@@ -61,3 +61,8 @@ class GameTester(unittest.TestCase):
         self.assertEqual(g.board['e4'], 'P')
 
 
+    def test_pawn_under_attack(self):
+        g = Gamestate()
+        g.take_move('e4')
+        g.take_move('d5')
+        self.assertTrue('exd5' in g.get_all_moves())

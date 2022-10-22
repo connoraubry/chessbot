@@ -1,6 +1,7 @@
 #start: coordinate of starting move 
 #end: coordinate of ending move 
 #capture: 0 for no capture, piece if otherwise 
+from operator import index
 from game.tools.helpers import *
 class Move():
     def __init__(self, start, end, piece, capture):
@@ -13,6 +14,10 @@ class Move():
         piece = self.piece.upper()
         if piece == 'P':
             piece = ""
+            if self.capture is not None:
+                start = index_to_coordinate(self.start)
+                end = index_to_coordinate(self.end)
+                return "{}x{}".format(start[0], end)
         capture = ""
         if self.capture is not None:
             capture = 'x'
