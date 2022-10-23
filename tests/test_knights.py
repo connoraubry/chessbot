@@ -5,6 +5,7 @@ import itertools
 from game.gamestate import Gamestate
 from game.tools import * 
 from tests.constants import *
+from game.board.piece import Piece
 
 
 one_knight_moves = {
@@ -60,18 +61,18 @@ class KnightTester(unittest.TestCase):
     
     def test_get_move_one_knight(self):
         for spot, expected in one_knight_moves.items():
-            g = Gamestate(fen=None)
-            g.board[spot] = 'N'
+            g = Gamestate(FEN=None)
+            g.board[spot] = Piece('N')
             self.assertSetEqual(expected, g.get_move(spot))
 
     def test_one_knight_num_moves(self):
         for spot, num_moves in num_moves_by_space.items():
-            g = Gamestate(fen=None)
-            g.board[spot] = "N"
+            g = Gamestate(FEN=None)
+            g.board[spot] = Piece("N")
             self.assertEqual(len(g.get_move(spot)), num_moves)
 
     def test_one_knight_captures(self):
-        g = Gamestate(fen=None)
-        g.board['a1'] = "N"
-        g.board['b3'] = 'p'
+        g = Gamestate(FEN=None)
+        g.board['a1'] = Piece("N")
+        g.board['b3'] = Piece('p')
         self.assertEqual(g.get_move('a1'), {'Nc2', 'Nxb3'})

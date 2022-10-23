@@ -1,3 +1,20 @@
+from enum import Enum, unique, auto
+
+@unique
+class PieceName(Enum):
+    PAWN   = auto()
+    KNIGHT = auto()
+    BISHOP = auto()
+    ROOK   = auto()
+    QUEEN  = auto() 
+    KING   = auto()
+    
+@unique
+class Player(Enum):
+    WHITE = auto()
+    BLACK = auto()
+
+
 rank_to_idx = {number: idx for idx, number in enumerate('12345678')}
 idx_to_rank = {idx: number for idx, number in enumerate('12345678')}
 file_to_idx = {letter: idx for idx, letter in enumerate('abcdefgh')}
@@ -13,7 +30,7 @@ black_pieces = 'prnbqk'
 valid_pieces = white_pieces + black_pieces
 starting_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
 
-piece_to_unicode = {
+piece_to_unicode_dict = {
     'p': '\u265F',
     'n': '\u265E',
     'b': '\u265D',
@@ -34,7 +51,7 @@ enemy = {
     'b': 'w'
 }
 opposite_piece = {
-    'w': {
+    Player.WHITE: {
         'pawn': 'p',
         'rook': 'r',
         'bishop': 'b',
@@ -42,12 +59,54 @@ opposite_piece = {
         'queen': 'q',
         'king': 'k'
     },
-    'b': {
+    Player.BLACK: {
         'pawn': 'P',
         'rook': 'R',
         'bishop': 'B',
         'knight': 'N',
         'queen': 'Q',
         'king': 'K'  
+    }
+}
+
+letter_to_player = {
+    'w': Player.WHITE,
+    'b': Player.BLACK
+}
+player_to_letter = {
+    Player.WHITE: 'w',
+    Player.BLACK: 'b'
+}
+
+letter_to_piece = {
+    'P': (PieceName.PAWN, Player.WHITE),
+    'N': (PieceName.KNIGHT, Player.WHITE),
+    'B': (PieceName.BISHOP, Player.WHITE),
+    'R': (PieceName.ROOK, Player.WHITE),
+    'Q': (PieceName.QUEEN, Player.WHITE),
+    'K': (PieceName.KING, Player.WHITE),
+    'p': (PieceName.PAWN, Player.BLACK),
+    'n': (PieceName.KNIGHT, Player.BLACK),
+    'b': (PieceName.BISHOP, Player.BLACK),
+    'r': (PieceName.ROOK, Player.BLACK),
+    'q': (PieceName.QUEEN, Player.BLACK),
+    'k': (PieceName.KING, Player.BLACK)
+}
+piece_to_letter = {
+    Player.BLACK: {
+        PieceName.PAWN: 'p',
+        PieceName.KNIGHT: 'n',
+        PieceName.BISHOP: 'b',
+        PieceName.ROOK: 'r',
+        PieceName.QUEEN: 'q',
+        PieceName.KING: 'k',
+    },
+    Player.WHITE: {
+        PieceName.PAWN: 'P',
+        PieceName.KNIGHT: 'N',
+        PieceName.BISHOP: 'B',
+        PieceName.ROOK: 'R',
+        PieceName.QUEEN: 'Q',
+        PieceName.KING: 'K',
     }
 }

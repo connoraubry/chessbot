@@ -1,4 +1,5 @@
 from game.tools import *
+from game.board.piece import Piece, get_opposite_piece
 import itertools
 
 class Board():
@@ -42,13 +43,13 @@ class Board():
             real_rank = 7-inverted_idx
             file = 0
             for character in rank:
-
                 if character in valid_pieces:
-                    self.board[file + (real_rank * 8)] = character
+                    index  = file + (real_rank * 8)
+                    self.board[index] = Piece(character)
                     if character == 'K':
-                        self.white_king = matrix_coords_to_algebraic(real_rank, file)
+                        self.white_king = index
                     elif character == 'k': 
-                        self.black_king = matrix_coords_to_algebraic(real_rank, file)
+                        self.black_king = index
                     file += 1
                 else:
                     file += int(character)
@@ -63,7 +64,7 @@ class Board():
             while file_idx < 8:
                 piece = row[file_idx]
                 if piece is not None:
-                    fen_row += piece 
+                    fen_row += piece.to_string()
                     file_idx += 1
                 else:
                     space_counter = 0
@@ -82,38 +83,62 @@ class Board():
         return BoardIterator(self.board)
 
     def piece_under_attack(self, spot):
-        player = player_of_piece(self[spot])
+        player = self[spot].player
         return self.piece_under_attack_by_knight(spot, player) \
                 or self.piece_under_attack_diagonal(spot, player) \
                 or self.piece_under_attack_straight(spot, player) \
                 or self.piece_under_attack_by_king(spot, player) \
                 or self.piece_under_attack_by_pawn(spot, player)
 
-    def piece_under_attack_by_knight(self, spot, player=None):
+    def piece_under_attack_by_knight(self, spot, player):
+        if player == None:
+            player = self[index].player
         knight_moves = self.get_knight_moves(spot, player)
         for km in knight_moves:
-            if km.capture == opposite_piece[player]['knight']:
+            if km.capture == get_opposite_piece(player, 'knight'):
                 return True 
         return False
 
-    def piece_under_attack_diagonal(self, index, player=None):
+    def piece_under_attack_diagonal(self, index, player):
+        if player == None:
+            player = self[index].player
         bishop_moves = self.get_bishop_moves(index, player)
         for move in bishop_moves:
-            if move.capture in [opposite_piece[player]['bishop'],
-                                opposite_piece[player]['queen']]:
+            if move.capture == get_opposite_piece(player, 'bishop') or \
+                move.capture == get_opposite_piece(player, 'queen'):
                 return True
         return False
     
-    def piece_under_attack_straight(self, index, player=None):
+    def piece_under_attack_straight(self, index, player):
+        if player == None:
+            player = self[index].player
         rook_moves = self.get_rook_moves(index, player)
         for move in rook_moves:
-            if move.capture in [opposite_piece[player]['rook'],
-                                opposite_piece[player]['queen']]:
+            if move.capture == get_opposite_piece(player, 'rook') or \
+                move.capture == get_opposite_piece(player, 'queen'):
                 return True 
         return False 
 
-    def get_knight_moves(self, index, player=None):
-    
+    def piece_under_attack_by_king(self, index, player):
+        if player == None:
+            player = self[index].player
+
+        rank_idx, file_idx = rank_and_file(index)
+
+        for rank_diff, file_diff in itertools.product([-1, 0, 1], [-1, 0, 1]): 
+            curr_file_idx = file_idx + file_diff
+            curr_rank_idx = rank_idx + rank_diff
+            if ( 0 <= curr_file_idx < 8 and 0 <= curr_rank_idx < 8):
+                new_spot = curr_file_idx + (curr_rank_idx * 8)
+                piece  = self.board[new_spot]
+                
+                if is_opposite_king(piece, player):
+                    return True
+        return False 
+
+    def get_knight_moves(self, index, player):
+        if player == None:
+            player = self[index].player
         rank, file = rank_and_file(index)
 
         move_offsets = []
@@ -146,7 +171,9 @@ class Board():
                 moves.append(Move(index, new_index, self[index], self[new_index]))
         return moves
 
-    def get_bishop_moves(self, index, player=None):
+    def get_bishop_moves(self, index, player):
+        if player == None:
+            player = self[index].player
         rank, file = rank_and_file(index)
 
         moves = []
@@ -168,7 +195,9 @@ class Board():
                     break
         return moves
 
-    def get_rook_moves(self, index, player=None):
+    def get_rook_moves(self, index, player):
+        if player == None:
+            player = self[index].player
         rank, file = rank_and_file(index)
         moves = []
 
@@ -200,28 +229,33 @@ class Board():
                 curr_rank_idx += rank_diff
         return moves
 
-    def get_queen_moves(self, index, player=None):
+    def get_queen_moves(self, index, player):
         bishop = self.get_bishop_moves(index, player)
         rook = self.get_rook_moves(index, player)
         return bishop + rook
 
     #TODO: promotion, capture, side of board captures
-    def get_pawn_moves(self, index, player=None):
+    def get_pawn_moves(self, index, player):
+        if player == None:
+            player = self[index].player
         rank, _ = rank_and_file(index)
         #check move ahead
         moves = []
 
+        if rank == 0 or rank == 7:
+            return []
+
         offset = 0
-        if player == 'w':
+        if player == Player.WHITE:
             offset = 8
-        elif player == 'b':
+        elif player == Player.BLACK:
             offset = -8
         new_spot = index + offset
         if self.board[new_spot] is None:
             moves.append(Move(index, new_spot, self.board[index], None))
             #if space ahead is empty, and first rank can go 2 moves
-            if (rank == 1 and player == 'w') or \
-            (rank == 6 and player == 'b'):
+            if (rank == 1 and player == Player.WHITE) or \
+            (rank == 6 and player == Player.BLACK):
                 two_spot = new_spot + offset 
                 if self.board[two_spot] is None:
                     moves.append(Move(index, two_spot, self.board[index], None))
@@ -233,63 +267,45 @@ class Board():
                 moves.append(Move(index, attack_spot, self.board[index], piece))
         return moves
 
-    def piece_under_attack_by_rook(self, index, player=None):
+    # def piece_under_attack_by_rook(self, index, player):
+    #     if player == None:
+    #         player = self[index].player
+    #     rank_idx, file_idx = rank_and_file(index)
+
+    #     for file_diff in [1, -1]:
+    #         curr_file_idx = file_idx + file_diff
+    #         while (0 <= curr_file_idx < 8):
+    #             new_spot = curr_file_idx + (rank_idx * 8)
+    #             piece  = self.board[new_spot]
+    #             if piece == None:
+    #                 curr_file_idx += file_diff
+    #             elif is_opposite_queen_or_rook(piece, player):
+    #                 return True
+    #             else:
+    #                 break  
+
+    #     for rank_diff in [1, -1]:
+    #         curr_rank_idx = rank_idx + rank_diff
+    #         while (0 <= curr_rank_idx < 8):
+    #             new_spot = file_idx + (curr_rank_idx * 8)
+    #             piece  = self.board[new_spot]
+    #             if piece == None:
+    #                 curr_rank_idx += rank_diff
+    #             elif is_opposite_queen_or_rook(piece, player):
+    #                 return True 
+    #             else:
+    #                 break
+    #     return False
+
+    def piece_under_attack_by_pawn(self, index, player):
         if player == None:
-            player = player_of_piece(self[index])
+            player = self[index].player
 
         rank_idx, file_idx = rank_and_file(index)
 
-        for file_diff in [1, -1]:
-            curr_file_idx = file_idx + file_diff
-            while (0 <= curr_file_idx < 8):
-                new_spot = curr_file_idx + (rank_idx * 8)
-                piece  = self.board[new_spot]
-                if piece == None:
-                    curr_file_idx += file_diff
-                elif is_opposite_queen_or_rook(piece, player):
-                    return True
-                else:
-                    break  
-
-        for rank_diff in [1, -1]:
-            curr_rank_idx = rank_idx + rank_diff
-            while (0 <= curr_rank_idx < 8):
-                new_spot = file_idx + (curr_rank_idx * 8)
-                piece  = self.board[new_spot]
-                if piece == None:
-                    curr_rank_idx += rank_diff
-                elif is_opposite_queen_or_rook(piece, player):
-                    return True 
-                else:
-                    break
-        return False
-
-    def piece_under_attack_by_king(self, index, player=None):
-        if player == None:
-            player = player_of_piece(self[index])
-
-        rank_idx, file_idx = rank_and_file(index)
-
-        for rank_diff, file_diff in itertools.product([-1, 0, 1], [-1, 0, 1]): 
-            curr_file_idx = file_idx + file_diff
-            curr_rank_idx = rank_idx + rank_diff
-            if ( 0 <= curr_file_idx < 8 and 0 <= curr_rank_idx < 8):
-                new_spot = curr_file_idx + (curr_rank_idx * 8)
-                piece  = self.board[new_spot]
-                
-                if is_opposite_king(piece, player):
-                    return True
-        return False 
-
-    def piece_under_attack_by_pawn(self, index, player=None):
-        if player == None:
-            player = player_of_piece(self[index])
-
-        rank_idx, file_idx = rank_and_file(index)
-
-        if player == 'w':
+        if player == Player.WHITE:
             rank_diff = 1
-        elif player == 'b':
+        elif player == Player.BLACK:
             rank_diff = -1
         for file_diff in [-1, 1]:
             curr_file_idx = file_idx + file_diff
@@ -318,22 +334,22 @@ def matrix_coords_to_algebraic(rank, file):
     return idx_to_file[file] + idx_to_rank[rank]
 
 def is_opposite_knight(piece, player):
-    return piece == opposite_piece[player]['knight']
+    return piece == Piece(opposite_piece[player]['knight'])
     
 def is_opposite_bishop(piece, player):
-    return piece == opposite_piece[player]['bishop']
+    return piece == Piece(opposite_piece[player]['bishop'])
 
 def is_opposite_queen(piece, player):
-    return piece == opposite_piece[player]['queen']
+    return piece == Piece(opposite_piece[player]['queen'])
 
 def is_opposite_rook(piece, player):
-    return piece == opposite_piece[player]['rook']
+    return piece == Piece(opposite_piece[player]['rook'])
 
 def is_opposite_king(piece, player):
-    return piece == opposite_piece[player]['king']
+    return piece == Piece(opposite_piece[player]['king'])
 
 def is_opposite_pawn(piece, player):
-    return piece == opposite_piece[player]['pawn']
+    return piece == Piece(opposite_piece[player]['pawn'])
 
 def is_opposite_queen_or_bishop(piece, player):
     return is_opposite_bishop(piece, player) or is_opposite_queen(piece, player)

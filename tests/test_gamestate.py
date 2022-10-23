@@ -1,24 +1,21 @@
-from tracemalloc import start
 import unittest
 
-from game.gamestate import Gamestate
-from game.tools.constants import *
+from game import * 
 from tests.constants import *
 
 class GameTester(unittest.TestCase):
     def test_init(self):
         g = Gamestate()
 
-        self.assertEqual(g.board['a1'], 'R')
+        self.assertEqual(g.board['a1'].to_string(), 'R')
         self.assertEqual(g.en_passant, "-")
         self.assertEqual(g.castle, "KQkq")
         self.assertEqual(g.halfmove_clock, 0)
         self.assertEqual(g.fullmove_counter, 1)
-        self.assertEqual(g.move, 'w')
-
+        self.assertEqual(g.move, Player.WHITE)
 
     def test_export_FEN(self):
-        g = Gamestate(fen=starting_FEN)
+        g = Gamestate(FEN=starting_FEN)
         new_fen = g.export_FEN()
         self.assertEqual(starting_FEN, new_fen)
     
@@ -32,14 +29,12 @@ class GameTester(unittest.TestCase):
         all_moves = g.get_all_moves()
         self.assertSetEqual(all_moves, first_moves)
     
-
     def test_get_all_moves_e4(self):
         g = Gamestate()
         g.take_move('e4')
 
         all_moves = g.get_all_moves()
         self.assertSetEqual(all_moves, first_black_moves)
-
 
     def test_move_to_start(self):
         g = Gamestate()
@@ -58,8 +53,7 @@ class GameTester(unittest.TestCase):
         g.take_move('e4')
         self.assertEqual(g.board['e2'], None)
         self.assertEqual(g.board['e3'], None)
-        self.assertEqual(g.board['e4'], 'P')
-
+        self.assertEqual(g.board['e4'].to_string(), 'P')
 
     def test_pawn_under_attack(self):
         g = Gamestate()

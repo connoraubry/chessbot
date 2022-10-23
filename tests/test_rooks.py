@@ -1,8 +1,8 @@
-import itertools
 import unittest
 import itertools
 
 from game.gamestate import Gamestate
+from game.board.piece import Piece
 from game.tools import * 
 from tests.constants import *
 
@@ -17,6 +17,6 @@ class RookTester(unittest.TestCase):
     
     def test_get_move_one_knight(self):
         for spot, expected in one_rook_moves.items():
-            g = Gamestate(fen=None)
-            g.board[spot] = 'R'
+            g = Gamestate(FEN=None)
+            g.board[spot] = Piece('R')
             self.assertSetEqual(expected, g.get_move(spot))

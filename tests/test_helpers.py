@@ -1,8 +1,7 @@
-from operator import index
 import unittest
 import itertools
 
-from game.tools import *
+from game import *
 
 class HelperTester(unittest.TestCase):
 
@@ -29,6 +28,6 @@ class HelperTester(unittest.TestCase):
             self.assertEqual(idx, coordinate_to_index(coordinate))
     def test_piece_player(self):
         for piece in 'prnbqk':
-            self.assertEqual('b', player_of_piece(piece))
+            self.assertEqual(letter_to_player['b'], Piece(piece).player)
         for piece in 'PRNBQK':
-            self.assertEqual('w', player_of_piece(piece))
+            self.assertEqual(letter_to_player['w'], Piece(piece).player)

@@ -9,7 +9,7 @@ quit_commands = [
 gs = Gamestate()
 
 while True:
-    if gs.move == 'w':
+    if gs.move == Player.WHITE:
         gs.print_board()
         print(gs.get_all_moves())
         move = input("Take a move: ")    

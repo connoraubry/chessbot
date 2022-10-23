@@ -11,8 +11,8 @@ class Move():
         self.capture = capture
 
     def to_string(self):
-        piece = self.piece.upper()
-        if piece == 'P':
+        piece = self.piece.to_string().upper()
+        if self.piece.is_pawn():
             piece = ""
             if self.capture is not None:
                 start = index_to_coordinate(self.start)
@@ -23,3 +23,6 @@ class Move():
             capture = 'x'
         end = index_to_coordinate(self.end)
         return "{}{}{}".format(piece, capture, end)
+    
+    def __repr__(self):
+        return self.to_string()

@@ -1,34 +1,44 @@
 from game.tools import *
-from game.board import Board 
+from game.board import Board
+from game.board.piece import *
 import itertools
 
+class State():
+    def __init__(self, move, castle, en_passant, halfmove_clock, fullmove_counter):
+        self.move = move
+        self.castle = castle
+        self.en_passant = en_passant
+        self.halfmove_clock = halfmove_clock
+        self.fullmove_counter = fullmove_counter
+
 class Gamestate():
-    def __init__(self, fen=starting_FEN):
+    def __init__(self, FEN=starting_FEN):
         self.board = Board()
-        self.load_FEN(fen)
+    
+        self.move = Player.WHITE
+        self.castle = ''
+        self.en_passant = '-'
+        self.halfmove_clock = 0
+        self.fullmove_counter = 1
+
+        if FEN is not None:
+            self.load_FEN(FEN)
         self.get_all_moves() #set self.moves 
     
     def load_FEN(self, FEN):
-        if FEN is not None:
-            positions, move, castle, en_passant, half, full = FEN.split(" ")
+        positions, move, castle, en_passant, half, full = FEN.split(" ")
 
-            self.board.load_board_from_FEN_positions(positions)
-            self.move = move 
-            self.castle = castle 
-            self.en_passant = en_passant
-            self.halfmove_clock = int(half)
-            self.fullmove_counter = int(full)
-        else:
-            self.move = 'w'
-            self.castle = ''
-            self.en_passant = '-'
-            self.halfmove_clock = 0
-            self.fullmove_counter = 1
+        self.board.load_board_from_FEN_positions(positions)
+        self.move = letter_to_player[move]
+        self.castle = castle 
+        self.en_passant = en_passant
+        self.halfmove_clock = int(half)
+        self.fullmove_counter = int(full)
 
     def export_FEN(self):
         positions = self.board.export_board_to_FEN_positions()
 
-        return " ".join([positions, self.move, self.castle, 
+        return " ".join([positions, player_to_letter[self.move], self.castle, 
             self.en_passant, str(self.halfmove_clock),
             str(self.fullmove_counter)])
 
@@ -51,18 +61,17 @@ class Gamestate():
         if piece is None:
             return set()
 
-        piece = piece.upper()
-        if piece == 'P':
+        if piece.is_pawn():
             moves = set(self.board.get_pawn_moves(index, self.move))
-        elif piece == 'B':
+        elif piece.is_bishop():
             moves = set(self.board.get_bishop_moves(index, self.move))
-        elif piece == 'R':
+        elif piece.is_rook():
             moves = set(self.board.get_rook_moves(index, self.move))
-        elif piece == 'N':
+        elif piece.is_knight():
             moves = set(self.board.get_knight_moves(index, self.move))
-        elif piece == 'K':
+        elif piece.is_king():
             moves = set(self.get_king_moves(index))
-        elif piece == 'Q':
+        elif piece.is_queen():
             moves = set(self.board.get_queen_moves(index, self.move))
 
         moves_string = {x.to_string() for x in moves}
@@ -108,7 +117,7 @@ class Gamestate():
         board_2d = self.board.get_2d_representation()
         unicode_board = []
         for row in reversed(board_2d):
-            unicode_row = [piece_to_unicode[x] for x in row]
+            unicode_row = [piece_to_unicode(x) for x in row]
             unicode_board.append(unicode_row)
 
         output = [bottom]
@@ -130,16 +139,20 @@ class Gamestate():
             self.board[move.end] = self.board[move.start]
             self.board[move.start] = None
 
-            if move.piece in ['p', 'P'] or move.capture is not None:
+
+            if move.piece.is_pawn() or move.capture is not None:
                 self.halfmove_clock = 0
             else:
                 self.halfmove_clock += 1
 
-            if self.move == 'w':
-                self.move = 'b'
-            elif self.move == 'b':
-                self.move = 'w'
+            if self.move == Player.WHITE:
+                self.move = Player.BLACK
+            elif self.move == Player.BLACK:
+                self.move = Player.WHITE
 
                 self.fullmove_counter += 1
             
             self.get_all_moves()
+
+
+    

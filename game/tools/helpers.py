@@ -30,9 +30,10 @@ def coordinate_to_index(coordinate: str):
     rank = rank_to_idx[coordinate[1]]
     return file + (rank * 8)
 
+def c2idx(coords):
+    return coordinate_to_index(coords)
+
 def player_of_piece(piece):
     if piece == None:
         return 'n'
-    if piece == piece.lower():
-        return 'b'
-    return 'w'
+    return piece.player

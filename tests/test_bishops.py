@@ -1,11 +1,10 @@
-import itertools
 import unittest
 import itertools
 
 from game.gamestate import Gamestate
 from game.tools import * 
 from tests.constants import *
-
+from game.board.piece import *
 one_bishop_moves = {
     'a1': set(['Bb2', 'Bc3', 'Bd4', 'Be5', 'Bf6', 'Bg7', 'Bh8']),
     'b2': set(['Ba1', 'Bc3', 'Bd4', 'Be5', 'Bf6', 'Bg7', 'Bh8', 'Ba3', 'Bc1']),
@@ -22,7 +21,7 @@ class BishopTester(unittest.TestCase):
     
     def test_get_move_one_knight(self):
         for spot, expected in one_bishop_moves.items():
-            g = Gamestate(fen=None)
-            g.board[spot] = 'B'
+            g = Gamestate(FEN=None)
+            g.board[spot] = Piece('B')
             b_moves = g.get_move(spot)
             self.assertSetEqual(expected, b_moves)
