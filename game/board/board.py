@@ -82,6 +82,16 @@ class Board():
     def __iter__(self):
         return BoardIterator(self.board)
 
+    def king_in_check(self, player):
+        if player == Player.WHITE:
+            if self.white_king != -1:
+                return self.piece_under_attack(self.white_king)
+        elif player == Player.BLACK:
+            if self.black_king != -1:
+                return self.piece_under_attack(self.black_king)
+        else:
+            raise ValueError
+
     def piece_under_attack(self, spot):
         player = self[spot].player
         return self.piece_under_attack_by_knight(spot, player) \
@@ -238,7 +248,7 @@ class Board():
     def get_pawn_moves(self, index, player):
         if player == None:
             player = self[index].player
-        rank, _ = rank_and_file(index)
+        rank, file = rank_and_file(index)
         #check move ahead
         moves = []
 
@@ -260,7 +270,14 @@ class Board():
                 if self.board[two_spot] is None:
                     moves.append(Move(index, two_spot, self.board[index], None))
 
-        for attack_offset in [offset + 1, offset - 1]:
+        #can't capture off side of board 
+        attack_offsets = []
+        if file != 0:
+            attack_offsets.append(offset-1)
+        if file != 7:
+            attack_offsets.append(offset+1)
+
+        for attack_offset in attack_offsets:
             attack_spot = index + attack_offset
             piece = self.board[attack_spot]
             if piece is not None and player_of_piece(piece) != player:

@@ -74,9 +74,16 @@ class Gamestate():
         elif piece.is_queen():
             moves = set(self.board.get_queen_moves(index, self.move))
 
-        moves_string = {x.to_string() for x in moves}
-        self.valid_moves = moves 
-        self.string_to_move.update({x.to_string(): x for x in moves})
+        valid_moves = set()
+        for m in moves:
+            self.temp_move(m)
+            if not self.board.king_in_check(self.move):
+                valid_moves.add(m)
+            self.reverse_temp_move(m)
+
+        self.valid_moves = valid_moves 
+        moves_string = {x.to_string() for x in valid_moves}
+        self.string_to_move.update({x.to_string(): x for x in valid_moves})
         self.move_to_start.update({move: index for move in moves_string})
         return moves_string
     
@@ -139,6 +146,11 @@ class Gamestate():
             self.board[move.end] = self.board[move.start]
             self.board[move.start] = None
 
+            if move.piece.is_king():
+                if move.piece.is_white():
+                    self.board.white_king = move.end 
+                elif move.piece.is_black():
+                    self.board.black_king = move.end 
 
             if move.piece.is_pawn() or move.capture is not None:
                 self.halfmove_clock = 0
@@ -153,6 +165,24 @@ class Gamestate():
                 self.fullmove_counter += 1
             
             self.get_all_moves()
-
-
     
+    #does not change player, state, etc 
+    def temp_move(self, move):
+        self.board[move.end] =  move.piece 
+        self.board[move.start] = None
+
+        if move.piece.is_king():
+            if move.piece.is_white():
+                self.board.white_king = move.end 
+            elif move.piece.is_black():
+                self.board.black_king = move.end 
+
+    def reverse_temp_move(self, move):
+        self.board[move.start] =  move.piece 
+        self.board[move.end] = move.capture 
+
+        if move.piece.is_king():
+            if move.piece.is_white():
+                self.board.white_king = move.start 
+            elif move.piece.is_black():
+                self.board.black_king = move.start 
