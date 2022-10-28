@@ -75,9 +75,6 @@ class Move():
 
     def specify_with_multiple_pieces(self, piece):
 
-        if self.piece.piece == PieceName.QUEEN and self.start == 61 and self.end == 54:
-            print(self.attack_spot_function(self.end, self.piece.piece))
-
         canUseFile, canUseRank = True, True 
 
         source_indicies = self.attack_spot_function(self.end, self.piece.piece)
