@@ -1,0 +1,27 @@
+r2qkb1r/p1pp2pp/bpB2p1n/4p3/4P2N/5P2/PPPP2PP/RNBQK2R w KQkq - 1 7
+Bxa8
+Bb7
+Bd5
+Bxd7+
+Bb5
+Ba4
+a3
+a4
+b3
+b4
+c3
+c4
+d3
+d4
+f4
+g3
+g4
+h3
+Ng6
+Nf5
+Nc3
+Na3
+Qe2
+Kf2
+Rg1
+Rf1

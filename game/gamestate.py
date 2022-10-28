@@ -39,7 +39,8 @@ class Gamestate():
     #export gamestate to FEN
     def export_FEN(self):
         positions = self.board.export_board_to_FEN_positions()
-
+        if self.castle == '':
+            self.castle = '-'
         return " ".join([positions, player_to_letter[self.move], self.castle, 
             index_to_coordinate(self.en_passant), str(self.halfmove_clock),
             str(self.fullmove_counter)])
@@ -94,21 +95,21 @@ class Gamestate():
 
         valid_moves = set()
         for m in moves:
+            
+            if m.castle is not None:
+                if not self.check_if_castle_valid(m):
+                    continue
             self.temp_move(m)
             king_check = self.board.king_in_check()
-
 
             #opponent king in check, see if it's mate.
             #not checkmate_check skips this if we're a level deep
             if not checkmate_check and king_check[opponent[self.move]]:
-                # self.print_board()
-                # print(self.board.board)
                 m.check = True 
                 self.move = opponent[self.move]
                 if m.check and len(self.get_all_moves(checkmate_check=True)) == 0:
                     m.checkmate = True 
                 self.move = opponent[self.move]
-
 
             if not king_check[self.move]:
                 attack_spot_to_source_spots[m.end][m.piece.piece].add(m.start)
@@ -119,6 +120,25 @@ class Gamestate():
 
         return valid_moves, attack_spot_to_source_spots
     
+    def check_if_castle_valid(self, move):
+        king_moves = {
+            'K': [5, 6],
+            'Q': [3, 2],
+            'k': [61, 62],
+            'q': [59, 58]
+        }
+        valid = True 
+        for king_move in king_moves[move.castle]:
+            m = Move(move.start, king_move, move.piece, self.board[king_move])
+            self.temp_move(m)
+            king_check = self.board.king_in_check()
+
+            if king_check[self.move]:
+                valid = False 
+
+            self.reverse_temp_move(m)
+        return valid 
+
     #TODO: Castling
     def get_king_moves(self, index):
         rank, file = rank_and_file(index)
@@ -134,7 +154,27 @@ class Gamestate():
                     moves.append(Move(index, new_spot, self.board[index], board_piece))
                 elif player_of_piece(board_piece) != self.move:
                     moves.append(Move(index, new_spot, self.board[index], board_piece))
+        moves += self.get_valid_castles(index)
+        return moves 
 
+    def get_valid_castles(self, index):
+        piece = self.board[index]
+        moves = set()
+        if piece is not None:
+            if piece.player == Player.WHITE:
+                if 'K' in self.castle:
+                    if self.board[5] == self.board[6] == None:
+                        moves.add(Move(index, 6, piece, None, castle='K'))
+                if 'Q' in self.castle:
+                    if self.board[3] == self.board[2] == self.board[1] == None:
+                        moves.add(Move(index, 2, piece, None, castle='Q'))
+            elif piece.player == Player.BLACK:
+                if 'k' in self.castle:
+                    if self.board[61] == self.board[62] == None:
+                        moves.add(Move(index, 62, piece, None, castle='k'))
+                if 'q' in self.castle:
+                    if self.board[59] == self.board[58] == self.board[57] == None:
+                        moves.add(Move(index, 58, piece, None, castle='q'))
         return moves 
 
     #Print the board all nice 
@@ -161,15 +201,18 @@ class Gamestate():
 
             move = self.string_to_move[string_move]
 
-            self.board[move.end] = self.board[move.start]
-            self.board[move.start] = None
+            if move.castle is not None:
+                self.take_castle(move)
+
+            else:
+                self.board[move.end] =  move.piece 
+                self.board[move.start] = None                
 
             if move.en_passant_piece_spot is not None:
                 self.board[move.en_passant_piece_spot] = None
 
             if move.promotion is not None:
                 self.board[move.end] = move.promotion
-
 
             if move.en_passant_revealed_spot is not None:
                 self.en_passant = move.en_passant_revealed_spot
@@ -181,6 +224,12 @@ class Gamestate():
                     self.board.white_king = move.end 
                 elif move.piece.is_black():
                     self.board.black_king = move.end 
+
+            #if rook moving at beginning, remove castle possibility 
+            if move.piece.is_rook():
+                map = {56: 'q', 63: 'K', 0: 'Q', 7: 'K'}
+                if move.start in map:
+                    self.castle = self.castle.replace(map[move.start], '')
 
             if move.piece.is_pawn() or move.capture is not None:
                 self.halfmove_clock = 0
@@ -196,10 +245,71 @@ class Gamestate():
             
             self.get_all_moves()
     
+
+
+    def take_castle(self, move):
+        self.temp_castle = self.castle 
+        if move.castle == 'K':
+            self.board[4] = None  
+            self.board[5] = Piece('R')
+            self.board[6] = Piece('K')
+            self.board[7] = None 
+            self.castle = self.castle.replace('K', '')
+            self.castle = self.castle.replace('Q', '')
+
+        if move.castle == 'Q':
+            self.board[4] = None  
+            self.board[3] = Piece('R')
+            self.board[2] = Piece('K')
+            self.board[0] = None       
+            self.castle = self.castle.replace('K', '')
+            self.castle = self.castle.replace('Q', '')  
+        if move.castle == 'k':
+            self.board[60] = None  
+            self.board[61] = Piece('r')
+            self.board[62] = Piece('k')
+            self.board[63] = None     
+            self.castle = self.castle.replace('k', '')
+            self.castle = self.castle.replace('q', '')              
+        if move.castle == 'q':
+            self.board[60] = None  
+            self.board[59] = Piece('r')
+            self.board[58] = Piece('k')
+            self.board[56] = None     
+            self.castle = self.castle.replace('k', '')
+            self.castle = self.castle.replace('q', '')
+
+    def undo_castle(self, move):
+        self.castle = self.temp_castle
+        if move.castle == 'K':
+            self.board[4] = Piece('K')  
+            self.board[5] = None
+            self.board[6] = None
+            self.board[7] = Piece('R') 
+        if move.castle == 'Q':
+            self.board[4] = Piece('K')  
+            self.board[3] = None
+            self.board[2] = None
+            self.board[0] = Piece('R')         
+        if move.castle == 'k':
+            self.board[60] = Piece('k')  
+            self.board[61] = None
+            self.board[62] = None
+            self.board[63] = Piece('r')                   
+        if move.castle == 'q':
+            self.board[60] = Piece('k')  
+            self.board[59] = None
+            self.board[58] = None
+            self.board[56] = Piece('r')   
+
     #Take a move that does not update state. Can be reversed 
     def temp_move(self, move):
-        self.board[move.end] =  move.piece 
-        self.board[move.start] = None
+        if move.castle is not None:
+            self.take_castle(move)
+
+        else:
+            self.board[move.end] =  move.piece 
+            self.board[move.start] = None
 
         if move.en_passant_piece_spot is not None:
             self.board[move.en_passant_piece_spot] = None
@@ -214,8 +324,11 @@ class Gamestate():
                 self.board.black_king = move.end 
 
     def reverse_temp_move(self, move):
-        self.board[move.start] =  move.piece 
-        self.board[move.end] = move.capture 
+        if move.castle is not None:
+            self.undo_castle(move)
+        else:
+            self.board[move.start] =  move.piece 
+            self.board[move.end] = move.capture 
 
         if move.en_passant_piece_spot is not None:
             self.board[move.en_passant_piece_spot] = move.capture 

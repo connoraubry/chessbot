@@ -10,6 +10,7 @@ class Move():
                     promotion=None, 
                     en_passant_revealed_spot=None, en_passant_piece_spot=None,
                     check=False, checkmate=False,
+                    castle=None,
                     attack_spot_function=default_attack_spot_function):
         self.start = start
         self.end = end 
@@ -27,14 +28,28 @@ class Move():
         self.check = check
         self.checkmate = checkmate
 
+        self.castle = castle
+
         self.attack_spot_function = attack_spot_function
 
+    
     def to_string(self):
         suffix = ''
         if self.check:
             suffix = '+'
         if self.checkmate:
             suffix = '#'
+
+
+        if self.castle is not None:
+            map = {
+                'K': 'O-O',
+                'k': 'O-O',
+                'Q': 'O-O-O',
+                'q': 'O-O-O'
+            }
+            return map[self.castle] + suffix 
+
         piece = self.piece.to_string().upper()
         piece = self.specify_with_multiple_pieces(piece)
 

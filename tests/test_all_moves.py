@@ -23,6 +23,8 @@ class MoveTester(unittest.TestCase):
         self.filetester('testfive.txt')
     def test_testsix(self):
         self.filetester('testsix.txt')
+    def test_testsix(self):
+        self.filetester('testseven.txt')
 
     def filetester(self, name):
         fen, valid_moves = load_file(fen_plus_moves_path / name)
