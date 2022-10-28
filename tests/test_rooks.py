@@ -15,8 +15,18 @@ one_rook_moves = {
 
 class RookTester(unittest.TestCase):
     
-    def test_get_move_one_knight(self):
+    def test_get_move_one_rook(self):
         for spot, expected in one_rook_moves.items():
             g = Gamestate(FEN=None)
             g.board[spot] = Piece('R')
-            self.assertSetEqual(expected, g.get_move(spot))
+            self.assertSetEqual(expected, {x.to_string() for x in g.board.get_rook_moves(c2idx(spot))})
+
+    def test_capture(self):
+        g = Gamestate(FEN=None)
+        g.board['a5'] = Piece('R')
+        g.board['e5'] = Piece('k')
+        moves = {x.to_string() for x in g.board.get_rook_moves(c2idx('a5'))}
+
+        expected = set(['Ra1', 'Ra2', 'Ra3', 'Ra4', 'Ra6', 'Ra7', 'Ra8',
+                         'Rb5', 'Rc5', 'Rd5', 'Rxe5'])
+        self.assertSetEqual(moves, expected)

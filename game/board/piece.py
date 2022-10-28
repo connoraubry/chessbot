@@ -1,8 +1,15 @@
 from game.tools.constants import * 
 
 class Piece():
-    def __init__(self, letter):
-        self.piece, self.player = letter_to_piece[letter]
+    def __init__(self, letter=None, pieceName=None, player=None):
+        if letter == pieceName == player == None:
+            raise ValueError
+        if letter is not None:
+            self.piece, self.player = letter_to_piece[letter]
+        else:
+            self.piece = pieceName
+            self.player = player
+
 
     def is_pawn(self):
         return self.piece == PieceName.PAWN
@@ -26,7 +33,6 @@ class Piece():
         if opposite == None:
             return False 
         return self.piece == opposite.piece and self.player == opposite.player
-
 
     def to_string(self):
         return piece_to_letter[self.player][self.piece]

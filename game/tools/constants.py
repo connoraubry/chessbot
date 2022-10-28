@@ -78,6 +78,11 @@ player_to_letter = {
     Player.BLACK: 'b'
 }
 
+opponent = {
+    Player.WHITE: Player.BLACK,
+    Player.BLACK: Player.WHITE
+}
+
 letter_to_piece = {
     'P': (PieceName.PAWN, Player.WHITE),
     'N': (PieceName.KNIGHT, Player.WHITE),
@@ -110,3 +115,5 @@ piece_to_letter = {
         PieceName.KING: 'K',
     }
 }
+
+promotion_pieces = [PieceName.KNIGHT, PieceName.BISHOP, PieceName.ROOK, PieceName.QUEEN]

@@ -63,16 +63,16 @@ class KnightTester(unittest.TestCase):
         for spot, expected in one_knight_moves.items():
             g = Gamestate(FEN=None)
             g.board[spot] = Piece('N')
-            self.assertSetEqual(expected, g.get_move(spot))
+            self.assertSetEqual(expected, {x.to_string() for x in g.board.get_knight_moves(c2idx(spot))})
 
     def test_one_knight_num_moves(self):
         for spot, num_moves in num_moves_by_space.items():
             g = Gamestate(FEN=None)
             g.board[spot] = Piece("N")
-            self.assertEqual(len(g.get_move(spot)), num_moves)
+            self.assertEqual(len(g.board.get_knight_moves(c2idx(spot))), num_moves)
 
     def test_one_knight_captures(self):
         g = Gamestate(FEN=None)
         g.board['a1'] = Piece("N")
         g.board['b3'] = Piece('p')
-        self.assertEqual(g.get_move('a1'), {'Nc2', 'Nxb3'})
+        self.assertEqual({x.to_string() for x in g.board.get_knight_moves(c2idx('a1'))}, {'Nc2', 'Nxb3'})

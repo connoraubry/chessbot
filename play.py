@@ -7,15 +7,31 @@ quit_commands = [
 ]
 
 gs = Gamestate()
+with open('output.pgn', 'w') as fp:
+    count = 1
+    while True:
+        print(gs.board.__dict__)
+        if gs.move == Player.WHITE:
+            gs.print_board()
+            moves = gs.get_all_moves()
+            if len(moves) == 0:
+                break 
+            print(moves)
+            
+            move = input("Take a move: ")    
+            if move in quit_commands:
+                break 
+            if move in moves:
+                gs.take_move(move)
+                fp.write('{}. {} '.format(count, move))
 
-while True:
-    if gs.move == Player.WHITE:
-        gs.print_board()
-        print(gs.get_all_moves())
-        move = input("Take a move: ")    
-        if move in quit_commands:
-            break 
-        gs.take_move(move)
-    else:
-        moves = gs.get_all_moves()
-        gs.take_move(random.choice(list(moves)))
+        else:
+            moves = gs.get_all_moves()
+            print("black", moves)
+            if len(moves) == 0:
+                break 
+            move = random.choice(list(moves))
+            
+            gs.take_move(move)
+            fp.write('{}\n'.format(move))
+            count += 1

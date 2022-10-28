@@ -20,12 +20,18 @@ def rank_file_to_index(rank, file):
 def rank_and_file(n):
     return n // 8, n % 8
 
-def index_to_coordinate(index: int):
+def index_to_coordinate(index):
+    if type(index) != int:
+        return '-'
+    if index < 0 or index > 63:
+        return '-'
     file = index % 8
     rank = (index-file) // 8
     return idx_to_file[file] + idx_to_rank[rank]
 
 def coordinate_to_index(coordinate: str):
+    if coordinate[0] == '-':
+        return -1 
     file = file_to_idx[coordinate[0]]
     rank = rank_to_idx[coordinate[1]]
     return file + (rank * 8)

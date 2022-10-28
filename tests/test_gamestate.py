@@ -8,7 +8,7 @@ class GameTester(unittest.TestCase):
         g = Gamestate()
 
         self.assertEqual(g.board['a1'].to_string(), 'R')
-        self.assertEqual(g.en_passant, "-")
+        self.assertEqual(g.en_passant, -1)
         self.assertEqual(g.castle, "KQkq")
         self.assertEqual(g.halfmove_clock, 0)
         self.assertEqual(g.fullmove_counter, 1)
@@ -36,17 +36,12 @@ class GameTester(unittest.TestCase):
         all_moves = g.get_all_moves()
         self.assertSetEqual(all_moves, first_black_moves)
 
-    def test_move_to_start(self):
-        g = Gamestate()
-        all_moves = g.moves
-        self.assertSetEqual(set(g.move_to_start.keys()), g.moves)
-
     def test_get_move(self):
         g = Gamestate()
-        self.assertSetEqual(set(), g.get_move(0))
-        self.assertSetEqual(set(), g.get_move(2))
-        self.assertSetEqual(set(['Na3', 'Nc3']), g.get_move(1))
-        self.assertSetEqual(set(['a3', 'a4']), g.get_move(8))
+        self.assertSetEqual(set(), {x.to_string() for x in g.get_move(0)[0]})
+        self.assertSetEqual(set(), {x.to_string() for x in g.get_move(2)[0]})
+        self.assertSetEqual(set(['Na3', 'Nc3']), {x.to_string() for x in g.get_move(1)[0]})
+        self.assertSetEqual(set(['a3', 'a4']), {x.to_string() for x in g.get_move(8)[0]})
 
     def test_take_move(self):
         g = Gamestate()

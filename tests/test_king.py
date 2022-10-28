@@ -1,5 +1,4 @@
 import unittest
-import itertools
 
 from game import *
 from tests.constants import *
@@ -12,9 +11,9 @@ one_king_moves = {
 
 class KingTester(unittest.TestCase):
     
-    def test_get_move_one_knight(self):
+    def test_get_move_one_king(self):
         for spot, expected in one_king_moves.items():
             g = Gamestate(FEN=None)
             g.board[spot] = Piece('K')
-            self.assertSetEqual(expected, g.get_move(spot))
+            self.assertSetEqual(expected, {x.to_string() for x in g.get_king_moves(c2idx(spot))})
 

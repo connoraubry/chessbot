@@ -29,6 +29,8 @@ class Board():
         return self.board[file_idx + (rank_idx * 8)]
 
     def __setitem__(self, key, value):
+        if type(value) == int:
+            print("setting {} to {}".format(key, value))
         if type(key) == int:
             self.board[key] = value
             return
@@ -82,15 +84,18 @@ class Board():
     def __iter__(self):
         return BoardIterator(self.board)
 
-    def king_in_check(self, player):
-        if player == Player.WHITE:
-            if self.white_king != -1:
-                return self.piece_under_attack(self.white_king)
-        elif player == Player.BLACK:
-            if self.black_king != -1:
-                return self.piece_under_attack(self.black_king)
-        else:
-            raise ValueError
+    def king_in_check(self):
+        white_check = False 
+        black_check = False 
+
+        if self.white_king != -1:
+            white_check = self.piece_under_attack(self.white_king)
+        if self.black_king != -1:
+            black_check = self.piece_under_attack(self.black_king)
+        return {
+            Player.WHITE: white_check,
+            Player.BLACK: black_check
+        }
 
     def piece_under_attack(self, spot):
         player = self[spot].player
@@ -102,7 +107,7 @@ class Board():
 
     def piece_under_attack_by_knight(self, spot, player):
         if player == None:
-            player = self[index].player
+            player = self[spot].player
         knight_moves = self.get_knight_moves(spot, player)
         for km in knight_moves:
             if km.capture == get_opposite_piece(player, 'knight'):
@@ -146,7 +151,7 @@ class Board():
                     return True
         return False 
 
-    def get_knight_moves(self, index, player):
+    def get_knight_moves(self, index, player=None):
         if player == None:
             player = self[index].player
         rank, file = rank_and_file(index)
@@ -177,11 +182,14 @@ class Board():
 
         for move_offset in move_offsets:
             new_index = index + move_offset
+            # print(new_index)
+            # print(self[new_index])
+
             if player_of_piece(self[new_index]) != player:
                 moves.append(Move(index, new_index, self[index], self[new_index]))
         return moves
 
-    def get_bishop_moves(self, index, player):
+    def get_bishop_moves(self, index, player=None):
         if player == None:
             player = self[index].player
         rank, file = rank_and_file(index)
@@ -205,7 +213,7 @@ class Board():
                     break
         return moves
 
-    def get_rook_moves(self, index, player):
+    def get_rook_moves(self, index, player=None):
         if player == None:
             player = self[index].player
         rank, file = rank_and_file(index)
@@ -239,13 +247,13 @@ class Board():
                 curr_rank_idx += rank_diff
         return moves
 
-    def get_queen_moves(self, index, player):
+    def get_queen_moves(self, index, player=None):
         bishop = self.get_bishop_moves(index, player)
         rook = self.get_rook_moves(index, player)
         return bishop + rook
 
     #TODO: promotion, capture, side of board captures
-    def get_pawn_moves(self, index, player):
+    def get_pawn_moves(self, index, player=None, en_passant=None):
         if player == None:
             player = self[index].player
         rank, file = rank_and_file(index)
@@ -260,15 +268,32 @@ class Board():
             offset = 8
         elif player == Player.BLACK:
             offset = -8
-        new_spot = index + offset
-        if self.board[new_spot] is None:
-            moves.append(Move(index, new_spot, self.board[index], None))
+        one_spot = index + offset
+
+        one_spot_piece = self.board[one_spot]
+        if one_spot_piece is None:
+
+            #promotions
+            if (rank == 6 and player == Player.WHITE) or \
+               (rank == 1 and player == Player.BLACK):
+                pass
+                for promote in promotion_pieces:
+                    promotion_piece = Piece(pieceName=promote, player=self.board[index].player)
+                    moves.append(Move(index, one_spot, 
+                                self.board[index], one_spot_piece, 
+                                promotion=promotion_piece))
+            #no promotion, just regular move up
+            else:
+                moves.append(Move(index, one_spot, self.board[index], one_spot_piece))
+
+
             #if space ahead is empty, and first rank can go 2 moves
             if (rank == 1 and player == Player.WHITE) or \
             (rank == 6 and player == Player.BLACK):
-                two_spot = new_spot + offset 
+                two_spot = one_spot + offset 
                 if self.board[two_spot] is None:
-                    moves.append(Move(index, two_spot, self.board[index], None))
+                    moves.append(Move(index, two_spot, 
+                            self.board[index], None, en_passant_revealed_spot=one_spot))
 
         #can't capture off side of board 
         attack_offsets = []
@@ -279,40 +304,33 @@ class Board():
 
         for attack_offset in attack_offsets:
             attack_spot = index + attack_offset
-            piece = self.board[attack_spot]
-            if piece is not None and player_of_piece(piece) != player:
-                moves.append(Move(index, attack_spot, self.board[index], piece))
+            attack_piece = self.board[attack_spot]
+            if type(attack_piece) == int:
+                print(attack_piece)
+                print(self.board)
+            if attack_piece is not None and player_of_piece(attack_piece) != player:
+                #promotion attack
+                if (rank == 6 and player == Player.WHITE) or \
+                    (rank == 1 and player == Player.BLACK):
+                    pass
+                    for promote in promotion_pieces:
+                        promotion_piece = Piece(pieceName=promote, player=self.board[index].player)
+                        moves.append(Move(index, attack_spot, 
+                                    self.board[index], attack_piece, promotion=promotion_piece))
+                #normal attack 
+                else:
+                    moves.append(Move(index, attack_spot, self.board[index], attack_piece))
+            #en passant 
+            elif en_passant == attack_spot:
+                en_passant_piece_spot = -1
+                if en_passant < 32:
+                    en_passant_piece_spot = en_passant + 8
+                else:
+                    en_passant_piece_spot = en_passant - 8
+                
+                moves.append(Move(index, attack_spot, self.board[index], self.board[en_passant_piece_spot],
+                             en_passant_piece_spot=en_passant_piece_spot))
         return moves
-
-    # def piece_under_attack_by_rook(self, index, player):
-    #     if player == None:
-    #         player = self[index].player
-    #     rank_idx, file_idx = rank_and_file(index)
-
-    #     for file_diff in [1, -1]:
-    #         curr_file_idx = file_idx + file_diff
-    #         while (0 <= curr_file_idx < 8):
-    #             new_spot = curr_file_idx + (rank_idx * 8)
-    #             piece  = self.board[new_spot]
-    #             if piece == None:
-    #                 curr_file_idx += file_diff
-    #             elif is_opposite_queen_or_rook(piece, player):
-    #                 return True
-    #             else:
-    #                 break  
-
-    #     for rank_diff in [1, -1]:
-    #         curr_rank_idx = rank_idx + rank_diff
-    #         while (0 <= curr_rank_idx < 8):
-    #             new_spot = file_idx + (curr_rank_idx * 8)
-    #             piece  = self.board[new_spot]
-    #             if piece == None:
-    #                 curr_rank_idx += rank_diff
-    #             elif is_opposite_queen_or_rook(piece, player):
-    #                 return True 
-    #             else:
-    #                 break
-    #     return False
 
     def piece_under_attack_by_pawn(self, index, player):
         if player == None:

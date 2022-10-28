@@ -19,9 +19,18 @@ one_bishop_moves = {
 
 class BishopTester(unittest.TestCase):
     
-    def test_get_move_one_knight(self):
+    def test_get_move_one_bishop(self):
         for spot, expected in one_bishop_moves.items():
             g = Gamestate(FEN=None)
             g.board[spot] = Piece('B')
-            b_moves = g.get_move(spot)
+            b_moves = {x.to_string() for x in g.board.get_bishop_moves(c2idx(spot))}
             self.assertSetEqual(expected, b_moves)
+
+    def test_capture(self):
+        g = Gamestate(FEN=None)
+        g.board['a1'] = Piece('B')
+        g.board['e5'] = Piece('k')
+        b_moves = {x.to_string() for x in g.board.get_bishop_moves(c2idx('a1'))}
+
+        moves = set(['Bb2', 'Bc3', 'Bd4', 'Bxe5'])
+        self.assertSetEqual(moves, b_moves)

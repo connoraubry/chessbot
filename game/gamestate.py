@@ -2,7 +2,7 @@ from game.tools import *
 from game.board import Board
 from game.board.piece import *
 import itertools
-
+from collections import defaultdict
 class State():
     def __init__(self, move, castle, en_passant, halfmove_clock, fullmove_counter):
         self.move = move
@@ -25,69 +25,101 @@ class Gamestate():
             self.load_FEN(FEN)
         self.get_all_moves() #set self.moves 
     
+    #Load gametstate from FEN 
     def load_FEN(self, FEN):
         positions, move, castle, en_passant, half, full = FEN.split(" ")
 
         self.board.load_board_from_FEN_positions(positions)
         self.move = letter_to_player[move]
         self.castle = castle 
-        self.en_passant = en_passant
+        self.en_passant = c2idx(en_passant)
         self.halfmove_clock = int(half)
         self.fullmove_counter = int(full)
 
+    #export gamestate to FEN
     def export_FEN(self):
         positions = self.board.export_board_to_FEN_positions()
 
         return " ".join([positions, player_to_letter[self.move], self.castle, 
-            self.en_passant, str(self.halfmove_clock),
+            index_to_coordinate(self.en_passant), str(self.halfmove_clock),
             str(self.fullmove_counter)])
 
-    def get_all_moves(self):
-        self.moves = set()
+    #get all valid moves for the current player 
+    def get_all_moves(self, checkmate_check=False):
         self.string_to_move = dict()
-        self.move_to_start = dict()
+        moves = set()
+
+        attack_spot_to_source_spots = defaultdict(lambda: defaultdict(set))
+
         for idx, piece in enumerate(self.board):
             if player_of_piece(piece) == self.move:
-                self.moves.update(self.get_move(idx)) 
+                valid_moves, attack_spots = self.get_move(idx, checkmate_check=checkmate_check)
+                moves.update(valid_moves)
 
-        return self.moves
+                for attack in attack_spots.keys():
+                    for piece in attack_spots[attack].keys():
+                        attack_spot_to_source_spots[attack][piece].update(attack_spots[attack][piece])
 
-    def get_move(self, index):
+        self.attack_spot_to_source_spots = attack_spot_to_source_spots
+        self.string_to_move = {x.to_string(): x for x in moves}
+        return set(self.string_to_move.keys())
+
+    def attack_spot_function(self, attack_spot, piece):
+        return self.attack_spot_to_source_spots[attack_spot][piece]
+
+    #Get all valid moves for a board index. 
+    def get_move(self, index, checkmate_check=False):
         moves = set()
+        attack_spot_to_source_spots = defaultdict(lambda: defaultdict(set))
         piece = self.board[index]
         if type(index) == str:
             index = coordinate_to_index(index)
 
         if piece is None:
-            return set()
-
+            return set(), set()
+        # if checkmate_check:
+        #     print(piece)
         if piece.is_pawn():
-            moves = set(self.board.get_pawn_moves(index, self.move))
+            moves = set(self.board.get_pawn_moves(index, en_passant=self.en_passant))
         elif piece.is_bishop():
-            moves = set(self.board.get_bishop_moves(index, self.move))
+            moves = set(self.board.get_bishop_moves(index))
         elif piece.is_rook():
-            moves = set(self.board.get_rook_moves(index, self.move))
+            moves = set(self.board.get_rook_moves(index))
         elif piece.is_knight():
-            moves = set(self.board.get_knight_moves(index, self.move))
+            moves = set(self.board.get_knight_moves(index))
         elif piece.is_king():
             moves = set(self.get_king_moves(index))
         elif piece.is_queen():
-            moves = set(self.board.get_queen_moves(index, self.move))
+            moves = set(self.board.get_queen_moves(index))
 
         valid_moves = set()
         for m in moves:
             self.temp_move(m)
-            if not self.board.king_in_check(self.move):
+            king_check = self.board.king_in_check()
+
+
+            #opponent king in check, see if it's mate.
+            #not checkmate_check skips this if we're a level deep
+            if not checkmate_check and king_check[opponent[self.move]]:
+                # self.print_board()
+                # print(self.board.board)
+                m.check = True 
+                self.move = opponent[self.move]
+                if m.check and len(self.get_all_moves(checkmate_check=True)) == 0:
+                    m.checkmate = True 
+                self.move = opponent[self.move]
+
+
+            if not king_check[self.move]:
+                attack_spot_to_source_spots[m.end][m.piece.piece].add(m.start)
+                m.attack_spot_function = self.attack_spot_function
                 valid_moves.add(m)
+
             self.reverse_temp_move(m)
 
-        self.valid_moves = valid_moves 
-        moves_string = {x.to_string() for x in valid_moves}
-        self.string_to_move.update({x.to_string(): x for x in valid_moves})
-        self.move_to_start.update({move: index for move in moves_string})
-        return moves_string
+        return valid_moves, attack_spot_to_source_spots
     
-
+    #TODO: Castling
     def get_king_moves(self, index):
         rank, file = rank_and_file(index)
 
@@ -102,23 +134,10 @@ class Gamestate():
                     moves.append(Move(index, new_spot, self.board[index], board_piece))
                 elif player_of_piece(board_piece) != self.move:
                     moves.append(Move(index, new_spot, self.board[index], board_piece))
-        # for castle_option in self.get_valid_castling():
-        #     if castle_option.lower() == 'k':
-        #         if self.board[index + 1] == self.board[index + 2] == None:
 
         return moves 
 
-    def get_valid_castling(self):
-        valid = []
-        for letter in self.castle:
-            if self.move == 'w':
-                if letter == letter.upper():
-                    valid.append(letter)
-            if self.move == 'b':
-                if letter == letter.lower():
-                    valid.append(letter)
-        return valid 
-
+    #Print the board all nice 
     def print_board(self):
         bottom = '  a b c d e f g h'
         board_2d = self.board.get_2d_representation()
@@ -137,14 +156,25 @@ class Gamestate():
 
     #return True if successful, false otherwise
     def take_move(self, string_move):
-
+        print("Taking", string_move)
         if string_move in self.string_to_move:
 
             move = self.string_to_move[string_move]
 
-
             self.board[move.end] = self.board[move.start]
             self.board[move.start] = None
+
+            if move.en_passant_piece_spot is not None:
+                self.board[move.en_passant_piece_spot] = None
+
+            if move.promotion is not None:
+                self.board[move.end] = move.promotion
+
+
+            if move.en_passant_revealed_spot is not None:
+                self.en_passant = move.en_passant_revealed_spot
+            else:
+                self.en_passant = -1
 
             if move.piece.is_king():
                 if move.piece.is_white():
@@ -166,10 +196,16 @@ class Gamestate():
             
             self.get_all_moves()
     
-    #does not change player, state, etc 
+    #Take a move that does not update state. Can be reversed 
     def temp_move(self, move):
         self.board[move.end] =  move.piece 
         self.board[move.start] = None
+
+        if move.en_passant_piece_spot is not None:
+            self.board[move.en_passant_piece_spot] = None
+
+        if move.promotion is not None:
+            self.board[move.end] = move.promotion
 
         if move.piece.is_king():
             if move.piece.is_white():
@@ -181,8 +217,32 @@ class Gamestate():
         self.board[move.start] =  move.piece 
         self.board[move.end] = move.capture 
 
+        if move.en_passant_piece_spot is not None:
+            self.board[move.en_passant_piece_spot] = move.capture 
+            self.board[move.end] = None
+
         if move.piece.is_king():
             if move.piece.is_white():
                 self.board.white_king = move.start 
             elif move.piece.is_black():
                 self.board.black_king = move.start 
+
+    def get_score(self):
+        score = 0
+        peice_to_score = {
+            PieceName.KING: 10000,
+            PieceName.QUEEN: 900,
+            PieceName.ROOK: 500,
+            PieceName.BISHOP: 300,
+            PieceName.KNIGHT: 300,
+            PieceName.PAWN: 100,
+        }
+        operator = {
+            Player.WHITE: 1,
+            Player.BLACK: -1       
+        }
+
+        for piece in self.board:
+            if piece is not None:
+                score += operator[piece.player] * peice_to_score[piece.piece]
+        return score 
