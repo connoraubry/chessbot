@@ -1,7 +1,7 @@
 from enum import Enum, unique, auto
 
 @unique
-class PieceName(Enum):
+class PieceType(Enum):
     PAWN   = auto()
     KNIGHT = auto()
     BISHOP = auto()
@@ -46,10 +46,6 @@ piece_to_unicode_dict = {
     None: '\u00B7'
 }
 
-enemy = {
-    'w': 'b',
-    'b': 'w'
-}
 opposite_piece = {
     Player.WHITE: {
         'pawn': 'p',
@@ -84,36 +80,44 @@ opponent = {
 }
 
 letter_to_piece = {
-    'P': (PieceName.PAWN, Player.WHITE),
-    'N': (PieceName.KNIGHT, Player.WHITE),
-    'B': (PieceName.BISHOP, Player.WHITE),
-    'R': (PieceName.ROOK, Player.WHITE),
-    'Q': (PieceName.QUEEN, Player.WHITE),
-    'K': (PieceName.KING, Player.WHITE),
-    'p': (PieceName.PAWN, Player.BLACK),
-    'n': (PieceName.KNIGHT, Player.BLACK),
-    'b': (PieceName.BISHOP, Player.BLACK),
-    'r': (PieceName.ROOK, Player.BLACK),
-    'q': (PieceName.QUEEN, Player.BLACK),
-    'k': (PieceName.KING, Player.BLACK)
+    'P': (PieceType.PAWN, Player.WHITE),
+    'N': (PieceType.KNIGHT, Player.WHITE),
+    'B': (PieceType.BISHOP, Player.WHITE),
+    'R': (PieceType.ROOK, Player.WHITE),
+    'Q': (PieceType.QUEEN, Player.WHITE),
+    'K': (PieceType.KING, Player.WHITE),
+    'p': (PieceType.PAWN, Player.BLACK),
+    'n': (PieceType.KNIGHT, Player.BLACK),
+    'b': (PieceType.BISHOP, Player.BLACK),
+    'r': (PieceType.ROOK, Player.BLACK),
+    'q': (PieceType.QUEEN, Player.BLACK),
+    'k': (PieceType.KING, Player.BLACK)
 }
 piece_to_letter = {
     Player.BLACK: {
-        PieceName.PAWN: 'p',
-        PieceName.KNIGHT: 'n',
-        PieceName.BISHOP: 'b',
-        PieceName.ROOK: 'r',
-        PieceName.QUEEN: 'q',
-        PieceName.KING: 'k',
+        PieceType.PAWN: 'p',
+        PieceType.KNIGHT: 'n',
+        PieceType.BISHOP: 'b',
+        PieceType.ROOK: 'r',
+        PieceType.QUEEN: 'q',
+        PieceType.KING: 'k',
     },
     Player.WHITE: {
-        PieceName.PAWN: 'P',
-        PieceName.KNIGHT: 'N',
-        PieceName.BISHOP: 'B',
-        PieceName.ROOK: 'R',
-        PieceName.QUEEN: 'Q',
-        PieceName.KING: 'K',
+        PieceType.PAWN: 'P',
+        PieceType.KNIGHT: 'N',
+        PieceType.BISHOP: 'B',
+        PieceType.ROOK: 'R',
+        PieceType.QUEEN: 'Q',
+        PieceType.KING: 'K',
     }
 }
 
-promotion_pieces = [PieceName.KNIGHT, PieceName.BISHOP, PieceName.ROOK, PieceName.QUEEN]
+promotion_pieces = [PieceType.KNIGHT, PieceType.BISHOP, PieceType.ROOK, PieceType.QUEEN]
+
+
+castle_int_to_string = {
+    0: '-', 1: 'q', 2: 'kq', 3: 'k',
+    4: 'Q', 5: 'Qq', 6: 'Qk', 7: 'Qkq',
+    8: 'K', 9: 'Kq', 10: 'Kk', 11: 'Kkq',
+    12: 'KQ', 13: 'KQq', 14: 'KQk', 15: 'KQkq'
+}

@@ -55,3 +55,5 @@ class GameTester(unittest.TestCase):
         g.take_move('e4')
         g.take_move('d5')
         self.assertTrue('exd5' in g.get_all_moves())
+
+    

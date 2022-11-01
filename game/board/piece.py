@@ -10,19 +10,18 @@ class Piece():
             self.piece = pieceName
             self.player = player
 
-
     def is_pawn(self):
-        return self.piece == PieceName.PAWN
+        return self.piece == PieceType.PAWN
     def is_knight(self):
-        return self.piece == PieceName.KNIGHT
+        return self.piece == PieceType.KNIGHT
     def is_bishop(self):
-        return self.piece == PieceName.BISHOP
+        return self.piece == PieceType.BISHOP
     def is_rook(self):
-        return self.piece == PieceName.ROOK
+        return self.piece == PieceType.ROOK
     def is_queen(self):
-        return self.piece == PieceName.QUEEN
+        return self.piece == PieceType.QUEEN
     def is_king(self):
-        return self.piece == PieceName.KING
+        return self.piece == PieceType.KING
 
     def is_white(self):
         return self.player == Player.WHITE

@@ -3,6 +3,7 @@ from game.board import Board
 from game.board.piece import *
 import itertools
 from collections import defaultdict
+
 class State():
     def __init__(self, move, castle, en_passant, halfmove_clock, fullmove_counter):
         self.move = move
@@ -10,6 +11,9 @@ class State():
         self.en_passant = en_passant
         self.halfmove_clock = halfmove_clock
         self.fullmove_counter = fullmove_counter
+
+    def castle_to_string(self):
+        return castle_int_to_string[self.castle]
 
 class Gamestate():
     def __init__(self, FEN=starting_FEN):
@@ -343,12 +347,12 @@ class Gamestate():
     def get_score(self):
         score = 0
         peice_to_score = {
-            PieceName.KING: 10000,
-            PieceName.QUEEN: 900,
-            PieceName.ROOK: 500,
-            PieceName.BISHOP: 300,
-            PieceName.KNIGHT: 300,
-            PieceName.PAWN: 100,
+            PieceType.KING: 10000,
+            PieceType.QUEEN: 900,
+            PieceType.ROOK: 500,
+            PieceType.BISHOP: 300,
+            PieceType.KNIGHT: 300,
+            PieceType.PAWN: 100,
         }
         operator = {
             Player.WHITE: 1,

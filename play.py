@@ -1,4 +1,5 @@
 from game import *
+from chessbot import eval
 import random 
 
 output_file = "game_output.txt"
@@ -32,7 +33,17 @@ with open('output.pgn', 'w') as fp:
             if len(moves) == 0 and gs.board.black_in_check:
                 print("Checkmate white!")
                 break 
-            move = random.choice(list(moves))
+
+            smallest_score = 10000000
+            move_choice = None
+            for move in moves:
+                real_move = gs.string_to_move[move]
+                gs.temp_move(real_move)
+                score = eval.calculate_score(gs)
+                if score < smallest_score:
+                    move_choice = move 
+                    smallest_score = score 
+                gs.reverse_temp_move(real_move)
             
             gs.take_move(move)
             fp.write('{}\n'.format(move))
