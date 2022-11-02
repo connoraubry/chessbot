@@ -53,7 +53,13 @@ class GameTester(unittest.TestCase):
     def test_pawn_under_attack(self):
         g = Gamestate()
         g.take_move('e4')
+        self.assertEqual(g.fullmove_counter, 1)
         g.take_move('d5')
+        self.assertEqual(g.fullmove_counter, 2)
+        self.assertEqual(g.halfmove_clock, 0)
         self.assertTrue('exd5' in g.get_all_moves())
 
+        g.take_move('Nc3')
+        self.assertEqual(g.fullmove_counter, 2)
+        self.assertEqual(g.halfmove_clock, 1)
     

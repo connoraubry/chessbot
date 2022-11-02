@@ -15,5 +15,5 @@ class KingTester(unittest.TestCase):
         for spot, expected in one_king_moves.items():
             g = Gamestate(FEN=None)
             g.board[spot] = Piece('K')
-            self.assertSetEqual(expected, {x.to_string() for x in g.get_king_moves(c2idx(spot))})
+            self.assertSetEqual(expected, {x.to_string() for x in g.board.get_king_moves(c2idx(spot))})
 

@@ -10,7 +10,6 @@ def load_file(filepath):
     return fen, valid_moves
 
 class MoveTester(unittest.TestCase):
-
     def test_testone(self):
         self.filetester('testone.txt')
     def test_testtwo(self):
