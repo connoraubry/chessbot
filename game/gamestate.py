@@ -93,7 +93,7 @@ class Gamestate():
         elif piece.is_knight():
             moves = set(self.board.get_knight_moves(index))
         elif piece.is_king():
-            moves = set(self.get_king_moves(index))
+            moves = set(self.board.get_king_moves(index, castling=self.castle))
         elif piece.is_queen():
             moves = set(self.board.get_queen_moves(index))
 
@@ -142,44 +142,6 @@ class Gamestate():
 
             self.reverse_temp_move(m)
         return valid 
-
-    #TODO: Castling
-    def get_king_moves(self, index):
-        rank, file = rank_and_file(index)
-
-        moves = []
-        for rank_diff, file_diff in itertools.product([-1, 0, 1], [-1, 0, 1]): 
-            curr_file_idx = file + file_diff
-            curr_rank_idx = rank + rank_diff
-            if ( 0 <= curr_file_idx < 8 and 0 <= curr_rank_idx < 8):
-                new_spot = curr_file_idx + (curr_rank_idx * 8)
-                board_piece  = self.board[new_spot]
-                if board_piece == None:
-                    moves.append(Move(index, new_spot, self.board[index], board_piece))
-                elif player_of_piece(board_piece) != self.move:
-                    moves.append(Move(index, new_spot, self.board[index], board_piece))
-        moves += self.get_valid_castles(index)
-        return moves 
-
-    def get_valid_castles(self, index):
-        piece = self.board[index]
-        moves = set()
-        if piece is not None:
-            if piece.player == Player.WHITE:
-                if 'K' in self.castle:
-                    if self.board[5] == self.board[6] == None:
-                        moves.add(Move(index, 6, piece, None, castle='K'))
-                if 'Q' in self.castle:
-                    if self.board[3] == self.board[2] == self.board[1] == None:
-                        moves.add(Move(index, 2, piece, None, castle='Q'))
-            elif piece.player == Player.BLACK:
-                if 'k' in self.castle:
-                    if self.board[61] == self.board[62] == None:
-                        moves.add(Move(index, 62, piece, None, castle='k'))
-                if 'q' in self.castle:
-                    if self.board[59] == self.board[58] == self.board[57] == None:
-                        moves.add(Move(index, 58, piece, None, castle='q'))
-        return moves 
 
     #Print the board all nice 
     def print_board(self):

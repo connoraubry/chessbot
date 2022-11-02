@@ -252,6 +252,46 @@ class Board():
         rook = self.get_rook_moves(index, player)
         return bishop + rook
 
+    #TODO: Castling
+    def get_king_moves(self, index, player=None, castling=''):
+        if player == None:
+            player = self[index].player
+        rank, file = rank_and_file(index)
+
+        moves = []
+        for rank_diff, file_diff in itertools.product([-1, 0, 1], [-1, 0, 1]): 
+            curr_file_idx = file + file_diff
+            curr_rank_idx = rank + rank_diff
+            if ( 0 <= curr_file_idx < 8 and 0 <= curr_rank_idx < 8):
+                new_spot = curr_file_idx + (curr_rank_idx * 8)
+                board_piece  = self.board[new_spot]
+                if board_piece == None:
+                    moves.append(Move(index, new_spot, self.board[index], board_piece))
+                elif player_of_piece(board_piece) != player:
+                    moves.append(Move(index, new_spot, self.board[index], board_piece))
+        moves += self.get_valid_castles(index, castling)
+        return moves 
+
+    def get_valid_castles(self, index, castling=''):
+        piece = self.board[index]
+        moves = set()
+        if piece is not None:
+            if piece.player == Player.WHITE:
+                if 'K' in castling:
+                    if self.board[5] == self.board[6] == None:
+                        moves.add(Move(index, 6, piece, None, castle='K'))
+                if 'Q' in castling:
+                    if self.board[3] == self.board[2] == self.board[1] == None:
+                        moves.add(Move(index, 2, piece, None, castle='Q'))
+            elif piece.player == Player.BLACK:
+                if 'k' in castling:
+                    if self.board[61] == self.board[62] == None:
+                        moves.add(Move(index, 62, piece, None, castle='k'))
+                if 'q' in castling:
+                    if self.board[59] == self.board[58] == self.board[57] == None:
+                        moves.add(Move(index, 58, piece, None, castle='q'))
+        return moves 
+
     #TODO: promotion, capture, side of board captures
     def get_pawn_moves(self, index, player=None, en_passant=None):
         if player == None:
