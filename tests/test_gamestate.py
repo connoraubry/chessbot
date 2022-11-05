@@ -1,5 +1,7 @@
 import unittest
 
+from copy import deepcopy
+
 from game import * 
 from tests.constants import *
 
@@ -56,4 +58,14 @@ class GameTester(unittest.TestCase):
         g.take_move('d5')
         self.assertTrue('exd5' in g.get_all_moves())
 
-    
+    def test_copy_gamestate(self):
+        gs = Gamestate()
+        gs2 = deepcopy(gs)
+
+        gs2.get_all_moves()
+        gs2.take_move('e4')
+        
+        self.assertFalse(gs2.board == gs.board)
+        self.assertNotEqual(gs.en_passant, gs2.en_passant)
+        self.assertEqual(gs.castle, gs2.castle)
+        self.assertEqual(gs.fullmove_counter, gs2.fullmove_counter)

@@ -7,14 +7,14 @@ quit_commands = [
     'quit', 'quit()'
 ]
 
-gs = Gamestate()
+g = Game()
 with open('output.pgn', 'w') as fp:
     count = 1
     while True:
-        if gs.move == Player.WHITE:
-            gs.print_board()
-            moves = gs.get_all_moves()
-            if len(moves) == 0 and gs.board.white_in_check:
+        if g.move == Player.WHITE:
+            g.print_board()
+            moves = g.get_all_moves()
+            if len(moves) == 0 and g.board.white_in_check:
                 print("Checkmate black!")
                 break
             print(moves)
@@ -23,32 +23,31 @@ with open('output.pgn', 'w') as fp:
             if move in quit_commands:
                 break 
             if move in moves:
-                gs.take_move(move)
+                g.take_move(move)
                 fp.write('{}. {} '.format(count, move))
             if '#' in move:
                 break 
         else:
-            moves = gs.get_all_moves()
+            moves = g.get_all_moves()
             print("black", moves)
-            if len(moves) == 0 and gs.board.black_in_check:
+            if len(moves) == 0 and g.board.black_in_check:
                 print("Checkmate white!")
                 break 
 
             smallest_score = 10000000
             move_choice = None
             for move in moves:
-                real_move = gs.string_to_move[move]
-                gs.temp_move(real_move)
-                score = eval.calculate_score(gs)
+                g.take_move(move)
+                score = eval.calculate_score(g)
                 if score < smallest_score:
                     move_choice = move 
                     smallest_score = score 
-                gs.reverse_temp_move(real_move)
+                g.undo_move()
             
-            gs.take_move(move)
+            g.take_move(move)
             fp.write('{}\n'.format(move))
             if '#' in move:
                 break 
             count += 1
-gs.print_board()
+g.print_board()
 print("Game over")

@@ -1,34 +1,43 @@
 from game.tools import *
 from game.board import Board
 from game.board.piece import *
-import itertools
 from collections import defaultdict
-
-class State():
-    def __init__(self, move, castle, en_passant, halfmove_clock, fullmove_counter):
-        self.move = move
-        self.castle = castle
-        self.en_passant = en_passant
-        self.halfmove_clock = halfmove_clock
-        self.fullmove_counter = fullmove_counter
-
-    def castle_to_string(self):
-        return castle_int_to_string[self.castle]
+from copy import deepcopy
 
 class Gamestate():
-    def __init__(self, FEN=starting_FEN):
-        self.board = Board()
-    
-        self.move = Player.WHITE
-        self.castle = ''
-        self.en_passant = '-'
-        self.halfmove_clock = 0
-        self.fullmove_counter = 1
+    def __init__(self, FEN=starting_FEN, copy=False):
 
-        if FEN is not None:
-            self.load_FEN(FEN)
-        self.get_all_moves() #set self.moves 
+
+        if not copy:
+            self.board = Board()
+        
+            self.move = Player.WHITE
+            self.castle = ''
+            self.en_passant = '-'
+            self.halfmove_clock = 0
+            self.fullmove_counter = 1
+
+            if FEN is not None:
+                self.load_FEN(FEN)
+
+            self.get_all_moves() #set self.moves 
     
+    def __deepcopy__(self, memo):
+        b = Board()
+        b.board = deepcopy(self.board.board)
+        b.white_king = self.board.white_king
+        b.black_king = self.board.black_king
+
+        gs = Gamestate(None)
+        gs.board = b 
+        gs.move = self.move
+        gs.castle = self.castle
+        gs.en_passant = self.en_passant
+        gs.halfmove_clock = self.halfmove_clock
+        gs.fullmove_counter = self.fullmove_counter
+        gs.get_all_moves()
+        return gs 
+
     #Load gametstate from FEN 
     def load_FEN(self, FEN):
         positions, move, castle, en_passant, half, full = FEN.split(" ")
@@ -82,8 +91,6 @@ class Gamestate():
 
         if piece is None:
             return set(), set()
-        # if checkmate_check:
-        #     print(piece)
         if piece.is_pawn():
             moves = set(self.board.get_pawn_moves(index, en_passant=self.en_passant))
         elif piece.is_bishop():
@@ -99,7 +106,6 @@ class Gamestate():
 
         valid_moves = set()
         for m in moves:
-            
             if m.castle is not None:
                 if not self.check_if_castle_valid(m):
                     continue
@@ -210,8 +216,6 @@ class Gamestate():
                 self.fullmove_counter += 1
             
             self.get_all_moves()
-    
-
 
     def take_castle(self, move):
         self.temp_castle = self.castle 
@@ -305,23 +309,3 @@ class Gamestate():
                 self.board.white_king = move.start 
             elif move.piece.is_black():
                 self.board.black_king = move.start 
-
-    def get_score(self):
-        score = 0
-        peice_to_score = {
-            PieceType.KING: 10000,
-            PieceType.QUEEN: 900,
-            PieceType.ROOK: 500,
-            PieceType.BISHOP: 300,
-            PieceType.KNIGHT: 300,
-            PieceType.PAWN: 100,
-        }
-        operator = {
-            Player.WHITE: 1,
-            Player.BLACK: -1       
-        }
-
-        for piece in self.board:
-            if piece is not None:
-                score += operator[piece.player] * peice_to_score[piece.piece]
-        return score 

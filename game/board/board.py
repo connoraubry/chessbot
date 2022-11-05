@@ -3,18 +3,17 @@ from game.board.piece import Piece, get_opposite_piece
 import itertools
 
 class Board():
-    def __init__(self, FEN_positions=None):
-        self.board = self.make_empty_board()
+    def __init__(self, FEN_positions=None, copy=False):
 
-        #for easier checks 
-        self.white_king = -1
-        self.black_king = -1
+        if not copy:
+            self.board = self.make_empty_board()
 
-        self.white_in_check = False 
-        self.black_in_check = False 
+            #for easier checks 
+            self.white_king = -1
+            self.black_king = -1
 
-        if FEN_positions is not None:
-            self.load_board_from_FEN_positions(FEN_positions)
+            if FEN_positions is not None:
+                self.load_board_from_FEN_positions(FEN_positions)
 
     def make_empty_board(self):
         return [None for x in range(64)]
